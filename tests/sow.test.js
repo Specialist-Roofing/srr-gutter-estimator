@@ -189,7 +189,9 @@ test('a job at the floor says so', () => {
     measuredLF: 12, stories: 1, material: 'Aluminum', profile: 'K Style 5"',
   });
   assert.match(flat(small),
-    /below the company minimum of \$950.00, and has been priced at the minimum/);
+    /minimum service amount is \$950.00\. The work above comes to \$592.64, so a \$357.36 service fee/);
+  assert.match(flat(small), /Minimum Service Fee Upgrade/);
+  assert.match(flat(small), /El Niño Service Fee/);
   assert.ok(sowFor(small).includes('$950.00'));
 });
 

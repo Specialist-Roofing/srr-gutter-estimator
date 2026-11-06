@@ -9,7 +9,7 @@ hangers_per_lf,0,Hidden hangers per linear foot. 0.5 = one every 24 inches.
 end_caps_per_run,0,End caps per continuous gutter run.
 splash_blocks_per_downspout,0,Set to 0 to stop including splash blocks.
 sealant_units_per_job,0,Tubes of sealant and consumables per job.
-minimum_job_price,950,Floor price. Estimate is raised to this if it comes in lower.
+minimum_job_price,1950,Minimum service amount. A smaller job gets a service fee line that brings it up to this.
 price_rounding,25,Round the customer-facing total up to this increment.
 estimate_validity_days,30,Printed on the statement of work.
 estimate_range_pct,0.1,Site shows total as a +/- band of this size.

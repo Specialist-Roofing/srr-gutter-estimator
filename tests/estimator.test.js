@@ -148,9 +148,19 @@ test('3. a small single storey job is lifted to minimum_job_price', () => {
   const r = estimate(config, {
     measuredLF: 12, stories: 1, material: 'Aluminum', profile: 'K Style 5"',
   });
-  assert.equal(r.subtotal, 592.64);
+  assert.equal(r.itemsSubtotal, 592.64);
   assert.equal(r.minimumApplied, true);
   assert.equal(r.total, 950); // 950 is already a clean multiple of 25
+
+  // The parts keep their sheet prices; one service fee line makes up the gap.
+  assert.equal(lineFor(r, 'Gutter Alum K Style 5"').lineTotal, 229.04);
+  const fee = r.lines.at(-1);
+  assert.equal(fee.isMinimumFee, true);
+  assert.equal(fee.code, 'El Niño Service Fee');
+  assert.equal(fee.name, 'Minimum Service Fee Upgrade');
+  assert.equal(fee.lineTotal, 357.36);
+  assert.equal(r.minimumFee, 357.36);
+  assert.equal(r.subtotal, 950);
 
   // NOTE: the spec's worked case for this test (40 LF, single storey) does NOT
   // hit the floor against real pricing:
@@ -162,6 +172,33 @@ test('3. a small single storey job is lifted to minimum_job_price', () => {
   });
   assert.equal(spec.subtotal, 1083.44);
   assert.equal(spec.minimumApplied, false);
+  assert.equal(spec.minimumFee, 0);
+  assert.ok(!spec.lines.some((l) => l.isMinimumFee), 'no fee line above the minimum');
+});
+
+test('3b. the service fee label can be set from the sheet', () => {
+  const config = loadRealConfig();
+  config.rules.minimum_fee_label = 'Service fee';
+  const r = estimate(config, {
+    measuredLF: 12, stories: 1, material: 'Aluminum', profile: 'K Style 5"',
+  });
+  assert.equal(r.lines.at(-1).name, 'Service fee');
+});
+
+test('3c. against the committed snapshot, a small job reaches the $1,950 minimum', () => {
+  const config = buildConfig(
+    readFileSync(join(ROOT, 'data', 'pricing.csv'), 'utf8'),
+    readFileSync(join(ROOT, 'data', 'rules.csv'), 'utf8'),
+    'test'
+  );
+  assert.equal(config.rules.minimum_job_price, 1950);
+  const r = estimate(config, {
+    measuredLF: 40, stories: 1, material: 'Aluminum', profile: 'K Style 5"',
+  });
+  assert.equal(r.minimumApplied, true);
+  const sum = r.lines.reduce((s, l) => s + l.lineTotal, 0);
+  assert.equal(Math.round(sum * 100) / 100, 1950, 'line items add up to the minimum');
+  assert.equal(r.total, 1950);
 });
 
 test('4. Half Round resolves the round downspout, not the rectangular one', () => {

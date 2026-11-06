@@ -92,6 +92,13 @@ function byFamily(pricing, family, material) {
       ?? null;
 }
 
+/**
+ * The line that lifts a small job to `minimum_job_price`. The label can be
+ * changed from the sheet with the optional `minimum_fee_label` rule.
+ */
+export const MINIMUM_FEE_CODE = 'El Niño Service Fee';
+export const DEFAULT_MINIMUM_FEE_LABEL = 'Minimum Service Fee Upgrade';
+
 const DOWNSPOUT_RULE = {
   Aluminum: { round: 'downspout_roundprofile_aluminum', default: 'downspout_default_aluminum' },
   Copper: { round: 'downspout_roundprofile_copper', default: 'downspout_default_copper' },
@@ -256,10 +263,29 @@ export function estimate(config, inputs) {
   addLine(byFamily(pricing, 'Gutter - Tear Off', material), qty.tearOffLF,
           'Tear off and haul away', null, 'LF');
 
+  // ---- minimum service fee --------------------------------------------------
+  // A job under the company minimum is NOT repriced. Every part keeps its
+  // sheet price, and one extra line makes up the difference, so the customer
+  // sees exactly what the work costs and what the minimum adds.
+  const itemsSubtotal = roundCents(lines.reduce((s, l) => s + l.lineTotal, 0));
+  const minimum = numOr(rules.minimum_job_price, 0);
+  const minimumFee = itemsSubtotal < minimum ? roundCents(minimum - itemsSubtotal) : 0;
+  const minimumApplied = minimumFee > 0;
+  if (minimumApplied) {
+    lines.push({
+      code: MINIMUM_FEE_CODE,
+      name: String(rules.minimum_fee_label ?? '').trim() || DEFAULT_MINIMUM_FEE_LABEL,
+      qty: 1,
+      uom: 'EA',
+      unitPrice: minimumFee,
+      lineTotal: minimumFee,
+      isMinimumFee: true,
+    });
+  }
+
   // ---- totals -------------------------------------------------------------
-  const subtotal = roundCents(lines.reduce((s, l) => s + l.lineTotal, 0));
-  const minimumApplied = subtotal < rules.minimum_job_price;
-  const afterMinimum = Math.max(subtotal, rules.minimum_job_price);
+  const subtotal = roundCents(itemsSubtotal + minimumFee);
+  const afterMinimum = subtotal;
 
   const rounding = rules.price_rounding;
   const total = rounding > 0
@@ -275,6 +301,8 @@ export function estimate(config, inputs) {
     quantities: qty,
     lines,
     unpriced,
+    itemsSubtotal,
+    minimumFee,
     subtotal,
     minimumApplied,
     total,

@@ -326,8 +326,9 @@ export function generateSow(config, result, meta) {
   if (result.minimumApplied) {
     L.push('');
     L.push(wrap(
-      `Note: this job falls below the company minimum of ` +
-      `$${amount(rules.minimum_job_price)}, and has been priced at the minimum.`
+      `Note: our minimum service amount is $${amount(rules.minimum_job_price)}. ` +
+      `The work above comes to $${amount(result.itemsSubtotal)}, so a ` +
+      `$${amount(result.minimumFee)} service fee has been added to reach the minimum.`
     ));
   }
   L.push('');

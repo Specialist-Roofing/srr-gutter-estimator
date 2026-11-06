@@ -671,10 +671,6 @@ function renderLineItems(r) {
         <td colspan="5" class="num">Subtotal</td>
         <td class="num strong">${money2(r.subtotal)}</td>
       </tr>
-      ${r.minimumApplied ? `<tr>
-        <td colspan="5" class="num">Company minimum applied</td>
-        <td class="num strong">${money2(r.total)}</td>
-      </tr>` : ''}
       <tr class="grand">
         <td colspan="5" class="num">Total</td>
         <td class="num">${money2(r.total)}</td>
@@ -748,7 +744,7 @@ export function renderResult(config, state) {
 
   return `
   <section class="card result">
-    ${r.minimumApplied ? '<span class="result__flag">Minimum job price applied</span>' : ''}
+    ${r.minimumApplied ? '<span class="result__flag">Includes minimum service fee</span>' : ''}
     <p class="result__label">Estimated total</p>
     <p class="result__total">${money(r.total)}</p>
     <p class="result__band">
